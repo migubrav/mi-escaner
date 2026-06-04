@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scanner IA Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        #video { width: 100%; border-radius: 1rem; background: #000; transform: scaleX(1); }
+        .canvas-hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col p-4">
+
+    <header class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-blue-400">Scanner IA Profesional</h1>
+        <p class="text-gray-400 text-sm">Detección de RUT y Nombre con IA</p>
+    </header>
+
+    <div class="relative mb-6">
+        <video id="video" autoplay playsinline></video>
+        <div class="absolute inset-0 border-2 border-blue-500 border-dashed m-10 pointer-events-none rounded-lg opacity-50"></div>
+    </div>
+
+    <div class="space-y-4">
+        <button id="capture-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-lg active:scale-95">
+            📸 CAPTURAR Y ANALIZAR
+        </button>
+
+        <div id="result-card" class="bg-gray-800 p-4 rounded-xl hidden">
+            <h2 class="text-blue-400 font-bold mb-2">Datos Detectados:</h2>
+            <p><strong>RUT:</strong> <span id="res-rut">Procesando...</span></p>
+            <p><strong>Nombre:</strong> <span id="res-name">Procesando...</span></p>
+            <button id="pdf-btn" class="mt-4 w-full bg-green-600 py-2 rounded-lg font-bold">
+                Descargar PDF
+            </button>
+        </div>
+    </div>
+
+    <canvas id="canvas" class="canvas-hidden"></canvas>
+
+    <script>
+        const video = document.getElementById('video');
+        const captureBtn = document.getElementById('capture-btn');
+        const resultCard = document.getElementById('result-card');
+        const canvas = document.getElementById('canvas');
+
+        // 1. Iniciar Cámara con Auto-Focus
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment", focusMode: "continuous" } 
+                });
+                video.srcObject = stream;
+            } catch (err) {
+                alert("Error al acceder a la cámara: " + err);
+            }
+        }
+
+        // 2. Capturar Foto
+        captureBtn.onclick = () => {
+            const context = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0);
+            
+            resultCard.classList.remove('hidden');
+            simularIA(); // Aquí iría la llamada real a la API de Gemini
+        };
+
+        // 3. Simulación de IA Superior (Gemini)
+        function simularIA() {
+            document.getElementById('res-rut').innerText = "12.345.678-9";
+            document.getElementById('res-name').innerText = "JUAN PEREZ SOTO";
+        }
+
+        // 4. Generar PDF
+        document.getElementById('pdf-btn').onclick = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const rut = document.getElementById('res-rut').innerText;
+            const nombre = document.getElementById('res-name').innerText;
+
+            doc.setFontSize(20);
+            doc.text("Reporte de Escaneo IA", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Nombre: ${nombre}`, 20, 40);
+            doc.text(`RUT: ${rut}`, 20, 50);
+            doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 20, 60);
+            
+            doc.save("Escaneo_RUT.pdf");
+        };
+
+        initCamera();
+    </script>
+</body>
+</html>
