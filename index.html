@@ -70,10 +70,39 @@
         };
 
         // 3. Simulación de IA Superior (Gemini)
-        function simularIA() {
-            document.getElementById('res-rut').innerText = "12.345.678-9";
-            document.getElementById('res-name').innerText = "JUAN PEREZ SOTO";
-        }
+        async function analizarCarnetReal(imagenBase64) {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
+
+    const body = {
+        contents: [{
+            parts: [
+                { text: "Analiza esta imagen de una cédula de identidad chilena. Extrae el RUN (con puntos y guion) y el NOMBRE COMPLETO. Responde solo en formato JSON así: {'rut': '...', 'nombre': '...'}" },
+                { inline_data: { mime_type: "image/jpeg", data: imagenBase64.split(',')[1] } }
+            ]
+        }]
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        const data = await response.json();
+        const textoIA = data.candidates[0].content.parts[0].text;
+        
+        // Limpiamos la respuesta para obtener los datos reales
+        const resultado = JSON.parse(textoIA.replace(/```json|```/g, ''));
+        
+        // 2. Aquí es donde los datos se muestran mágicamente en tu pantalla
+        document.getElementById('res-rut').innerText = resultado.rut;
+        document.getElementById('res-nombre').innerText = resultado.nombre;
+        
+    } catch (error) {
+        console.error("Error con la IA:", error);
+        alert("Hubo un problema al leer el carnet. Revisa tu API KEY.");
+    }
+}
+
 
         // 4. Generar PDF
         document.getElementById('pdf-btn').onclick = () => {
